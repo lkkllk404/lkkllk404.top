@@ -69,3 +69,4 @@ The repo owner has a C/Python background and is new to web development. When ask
 
 - Always pause and wait for my confirmation after completing a major phase or feature, before running any git commit.
 - Remember to update Todo
+- After completing a task, run a quick smoke test (e.g. start `pnpm --filter chat dev` or `pnpm --filter site dev` and verify the dev server starts without errors) before marking it as done.
