@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
-import { connect, type ChatMessage, type WsHandle } from './ws'
+import { connect, type ChatMessage, type WsHandle } from './socket'
 import type { UserInfo } from './LoginPage'
 
 interface Props {
