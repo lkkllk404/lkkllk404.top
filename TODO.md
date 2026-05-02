@@ -27,19 +27,19 @@
 
 ## Phase 2: Static site (site/)
 
-- [ ] Global CSS (`site/src/styles/global.css`) — dark terminal color scheme, typography, spacing
-- [ ] Base layout (`site/src/layouts/Base.astro`) — shared HTML shell
-- [ ] Homepage (`site/src/pages/index.astro`)
+- [x] Global CSS (`site/src/styles/global.css`) — dark terminal color scheme, typography, spacing
+- [x] Base layout (`site/src/layouts/Base.astro`) — shared HTML shell
+- [x] Homepage (`site/src/pages/index.astro`)
   - Deep gradient background + CSS dot grid
   - Nav line: `~/home          # blog  chat`
   - Decorative C struct (syntax highlighted, non-interactive)
   - Commands: `> cat /blog`, `> nc chat 1337`
   - Footer blinking cursor
-- [ ] Blog listing page (`site/src/pages/blog/index.astro`) — `ls -la` style
-- [ ] Blog slug route (`site/src/pages/blog/[slug].astro`) — post detail
-- [ ] Astro content collection config for blog posts
-- [ ] First blog post (`site/src/content/blog/first-post.md`)
-- [ ] Build and verify static output
+- [x] Blog listing page (`site/src/pages/blog/index.astro`) — `ls -la` style
+- [x] Blog slug route (`site/src/pages/blog/[slug].astro`) — post detail
+- [x] Astro content collection config for blog posts
+- [x] First blog post (`site/src/content/blog/first-post.md`)
+- [x] Build and verify static output
 
 ## Phase 3: Chat backend (chat/)
 

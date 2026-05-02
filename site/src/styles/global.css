@@ -1,0 +1,47 @@
+:root {
+  --bg: #0a0a12;
+  --text: #c9d1d9;
+  --keyword: #c792ea;
+  --string: #ecc48d;
+  --comment: #54546d;
+  --prompt: #7ee787;
+  --link-hover: #58a6ff;
+  --separator: #30363d;
+}
+
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'SF Mono',
+    'MesloLGS NF', 'Fira Mono', 'Source Code Pro', Consolas, Courier, monospace;
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+a {
+  color: var(--keyword);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--link-hover);
+}
+
+::selection {
+  background: var(--keyword);
+  color: var(--bg);
+}

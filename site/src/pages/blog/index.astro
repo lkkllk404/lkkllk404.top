@@ -1,0 +1,46 @@
+---
+import Base from '../../layouts/Base.astro'
+import { getCollection } from 'astro:content'
+
+const posts = await getCollection('blog')
+posts.sort((a, b) => b.data.date.getTime() - a.data.date.getTime())
+---
+<Base title="~/blog">
+  <div class="container">
+    <nav class="navbar">
+      <span class="path">~/blog</span>
+      <span class="nav-links">
+        <a href="/" class="nav-link"><span class="comment">#</span> home</a>
+        <a href="https://chat.lkkllk404.top" class="nav-link"><span class="comment">#</span> chat</a>
+      </span>
+    </nav>
+
+    <pre class="listing">
+{
+  posts.map((post) => (
+    <span>{post.data.date.toISOString().slice(0, 10)}  <a href={`/blog/${post.id}`}>{post.data.title}</a></span>
+  ))
+}
+    </pre>
+  </div>
+
+  <footer class="footer">
+    <span class="prompt">[user@www blog]$</span><span class="cursor">_</span>
+  </footer>
+</Base>
+
+<style>
+  .container { max-width: 720px; margin: 0 auto; padding: 3rem 2rem 2rem; }
+  .navbar { display: flex; align-items: center; gap: 1.5rem; margin-bottom: 2rem; }
+  .path { color: var(--prompt); }
+  .nav-links { display: flex; gap: 1rem; margin-left: auto; }
+  .nav-link { color: var(--comment); }
+  .nav-link:hover { color: var(--text); }
+  .listing { color: var(--text); font-size: 0.95rem; line-height: 2; }
+  .listing a { color: var(--keyword); }
+  .listing a:hover { color: var(--link-hover); }
+  .prompt { color: var(--prompt); }
+  .footer { position: fixed; bottom: 1.5rem; left: 2rem; font-size: 0.9rem; }
+  .cursor { display: inline-block; width: 0.6em; height: 1em; background: var(--prompt); animation: blink 1s step-end infinite; vertical-align: text-bottom; }
+  @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+</style>

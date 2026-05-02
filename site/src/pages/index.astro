@@ -1,16 +1,141 @@
-<!doctype html>
-<html lang="zh-CN">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>lkkllk404.top</title>
-  </head>
-  <body>
-    <pre>lkkllk404.top — under construction</pre>
-  </body>
-</html>
+---
+import Base from '../layouts/Base.astro'
+---
+<Base title="~/home" bodyClass="home">
 
-<style is:global>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { background: #0a0a12; color: #c9d1d9; font-family: monospace; }
+  <div class="container">
+    <nav class="navbar">
+      <span class="path">~/home</span>
+      <span class="nav-links">
+        <a href="/blog" class="nav-link"><span class="comment">#</span> blog</a>
+        <a href="https://chat.lkkllk404.top" class="nav-link"><span class="comment">#</span> chat</a>
+      </span>
+    </nav>
+
+    <pre class="struct">
+<span class="comment">typedef struct</span> {'{'}
+    <span class="keyword">const char</span> *<span class="member">domain</span>;    <span class="comment">// {'{'}<a href="/" class="struct-link">www.lkkllk404.top</a>{'}'}</span>
+    <span class="keyword">const char</span> *<span class="member">author</span>;    <span class="comment">// {'{'}<span class="string">"lkkllk404"</span>{'}'}</span>
+    <span class="keyword">SiteType</span>   <span class="member">type</span>;      <span class="comment">// {'{'}SITE_PERSONAL{'}'}</span>
+    <span class="keyword">Blog</span>       <span class="member">blog</span>;      <span class="comment">// {'{'}casual notes{'}'}</span>
+    <span class="keyword">Chat</span>       <span class="member">chat</span>;      <span class="comment">// {'{'}irc-style terminal{'}'}</span>
+{'}'} <span class="keyword">Site</span>;</pre>
+
+    <div class="commands">
+      <p><span class="prompt">&gt;</span> <a href="/blog">cat /blog</a></p>
+      <p><span class="prompt">&gt;</span> <a href="https://chat.lkkllk404.top">nc chat 1337</a></p>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <span class="prompt">[user@www ~]$</span><span class="cursor">_</span>
+  </footer>
+
+</Base>
+
+<style>
+  :global(body.home) {
+    background-image:
+      radial-gradient(circle at center, rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 22px 22px;
+  }
+  .container {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 3rem 2rem 2rem;
+  }
+
+  .navbar {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+  }
+
+  .path {
+    color: var(--prompt);
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 1rem;
+    margin-left: auto;
+  }
+
+  .nav-link {
+    color: var(--comment);
+  }
+
+  .nav-link:hover {
+    color: var(--text);
+  }
+
+  .struct {
+    margin-bottom: 2rem;
+    font-size: 0.95rem;
+    line-height: 1.9;
+  }
+
+  :global(.struct .keyword) {
+    color: var(--keyword);
+  }
+
+  :global(.struct .comment) {
+    color: var(--comment);
+  }
+
+  :global(.struct .string) {
+    color: var(--string);
+  }
+
+  :global(.struct .member) {
+    color: var(--text);
+  }
+
+  :global(.struct-link) {
+    color: var(--keyword);
+  }
+
+  :global(.struct-link:hover) {
+    color: var(--link-hover);
+  }
+
+  .commands {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 3rem;
+  }
+
+  .commands a {
+    color: var(--text);
+  }
+
+  .commands a:hover {
+    color: var(--link-hover);
+  }
+
+  .prompt {
+    color: var(--prompt);
+  }
+
+  .footer {
+    position: fixed;
+    bottom: 1.5rem;
+    left: 2rem;
+    font-size: 0.9rem;
+  }
+
+  .cursor {
+    display: inline-block;
+    width: 0.6em;
+    height: 1em;
+    background: var(--prompt);
+    animation: blink 1s step-end infinite;
+    vertical-align: text-bottom;
+  }
+
+  @keyframes blink {
+    50% { opacity: 0; }
+  }
 </style>
