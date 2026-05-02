@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "concurrently \"pnpm dev:worker\" \"pnpm dev:frontend\"",
-    "dev:worker": "wrangler dev",
+    "dev:worker": "wrangler dev --ip 0.0.0.0",
     "dev:frontend": "vite dev --config vite.config.ts",
     "build": "pnpm build:frontend && pnpm build:worker",
     "build:frontend": "vite build --config vite.config.ts",
