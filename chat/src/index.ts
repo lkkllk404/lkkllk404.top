@@ -6,6 +6,7 @@ export { ChatRoom }
 export interface Env {
   CHAT_ROOM: DurableObjectNamespace<ChatRoom>
   ASSETS: Fetcher
+  chat_history: D1Database
 }
 
 export default {

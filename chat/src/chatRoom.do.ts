@@ -17,8 +17,22 @@ interface ChatMessage {
 }
 
 export class ChatRoom extends DurableObject {
+  private inited = false
+  private d1: D1Database
+
+  constructor(ctx: DurableObjectState, env: { chat_history: D1Database }) {
+    super(ctx, env)
+    this.d1 = env.chat_history
+  }
 
   async fetch(request: Request): Promise<Response> {
+    if (!this.inited) {
+      this.ctx.storage.sql.exec(
+        'CREATE TABLE IF NOT EXISTS messages (id INTEGER PRIMARY KEY, type TEXT NOT NULL, name TEXT, color TEXT, text TEXT, time TEXT NOT NULL)'
+      )
+      this.inited = true
+    }
+
     const url = new URL(request.url)
 
     if (url.pathname === '/session' && request.method === 'PUT') {
@@ -57,7 +71,13 @@ export class ChatRoom extends DurableObject {
     await this.ctx.storage.put(`lastseen:${token}`, Date.now())
     await this.ctx.storage.setAlarm(Date.now() + 45000)
 
-    this.broadcast({ type: 'join', name: session.name, time: now() })
+    // Send history to the new client
+    const history = this.getHistory()
+    if (history.length > 0) {
+      server.send(JSON.stringify({ type: 'history', messages: history }))
+    }
+
+    await this.broadcast({ type: 'join', name: session.name, time: now() })
     this.broadcastUserCount()
 
     return new Response(null, { status: 101, webSocket: client })
@@ -85,7 +105,7 @@ export class ChatRoom extends DurableObject {
 
     if (!data.text) return
 
-    this.broadcast({
+    await this.broadcast({
       type: 'msg',
       name: session.name,
       color: session.color,
@@ -100,7 +120,7 @@ export class ChatRoom extends DurableObject {
     await this.ctx.storage.delete(`lastseen:${token}`)
     const session = await this.ctx.storage.get(`session:${token}`) as ClientInfo | undefined
     if (session) {
-      this.broadcast({ type: 'leave', name: session.name, time: now() })
+      await this.broadcast({ type: 'leave', name: session.name, time: now() })
       this.broadcastUserCount()
     }
   }
@@ -111,7 +131,7 @@ export class ChatRoom extends DurableObject {
     await this.ctx.storage.delete(`lastseen:${token}`)
     const session = await this.ctx.storage.get(`session:${token}`) as ClientInfo | undefined
     if (session) {
-      this.broadcast({ type: 'leave', name: session.name, time: now() })
+      await this.broadcast({ type: 'leave', name: session.name, time: now() })
       this.broadcastUserCount()
     }
   }
@@ -131,7 +151,7 @@ export class ChatRoom extends DurableObject {
     }
   }
 
-  private broadcast(msg: ChatMessage) {
+  private async broadcast(msg: ChatMessage) {
     const payload = JSON.stringify(msg)
     for (const ws of this.ctx.getWebSockets()) {
       try {
@@ -140,6 +160,55 @@ export class ChatRoom extends DurableObject {
         // client may already be dead
       }
     }
+    await this.storeMessage(msg)
+  }
+
+  private async storeMessage(msg: ChatMessage) {
+    if (msg.type === 'users' || msg.type === 'pong' || msg.type === 'history') return
+    this.ctx.storage.sql.exec(
+      'INSERT INTO messages (type, name, color, text, time) VALUES (?, ?, ?, ?, ?)',
+      msg.type, msg.name ?? null, msg.color ?? null, msg.text ?? null, msg.time ?? now()
+    )
+    // Archive excess messages to D1
+    const cursor = this.ctx.storage.sql.exec('SELECT COUNT(*) as cnt FROM messages')
+    const count = cursor.raw().next().value?.[0] ?? 0
+    if (count <= 500) return
+
+    const old = this.ctx.storage.sql.exec(
+      'SELECT id, type, name, color, text, time FROM messages ORDER BY id ASC LIMIT ?',
+      count - 500
+    )
+    const batch: D1PreparedStatement[] = []
+    for (const row of old.raw()) {
+      batch.push(
+        this.d1.prepare('INSERT INTO messages (type, name, color, text, time) VALUES (?, ?, ?, ?, ?)')
+          .bind(row[1], row[2], row[3], row[4], row[5])
+      )
+    }
+    if (batch.length > 0) {
+      await this.d1.batch(batch)
+      this.ctx.storage.sql.exec(
+        'DELETE FROM messages WHERE id IN (SELECT id FROM messages ORDER BY id ASC LIMIT ?)',
+        count - 500
+      )
+    }
+  }
+
+  private getHistory(): ChatMessage[] {
+    const cursor = this.ctx.storage.sql.exec(
+      'SELECT type, name, color, text, time FROM messages ORDER BY id ASC LIMIT 50'
+    )
+    const messages: ChatMessage[] = []
+    for (const row of cursor.raw()) {
+      messages.push({
+        type: row[0] as ChatMessage['type'],
+        name: row[1] as string | undefined,
+        color: row[2] as string | undefined,
+        text: row[3] as string | undefined,
+        time: row[4] as string | undefined,
+      })
+    }
+    return messages
   }
 
   private broadcastUserCount() {

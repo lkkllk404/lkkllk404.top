@@ -24,7 +24,10 @@ export default function ChatPage({ token, user }: Props) {
 
   useEffect(() => {
     const ws = connect(token, (msg) => {
-      if (msg.type === 'users') {
+      if (msg.type === 'history') {
+        const historyMsgs = (msg.messages || []).map(m => ({ ...m, id: idRef.current++ }))
+        setMessages((prev) => [...historyMsgs, ...prev])
+      } else if (msg.type === 'users') {
         setUsersCount(msg.count ?? 0)
         setTotalUsers(msg.total ?? 5)
       } else {

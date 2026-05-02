@@ -6,6 +6,11 @@ preview_urls = false
 
 assets = { directory = "public/" }
 
+[[d1_databases]]
+binding = "chat_history"
+database_name = "chat-history"
+database_id = "950a5b32-1c53-42c7-be7e-fa63d139b786"
+
 [durable_objects]
 bindings = [
   { name = "CHAT_ROOM", class_name = "ChatRoom" }

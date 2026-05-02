@@ -1,11 +1,12 @@
 export interface ChatMessage {
-  type: 'msg' | 'join' | 'leave' | 'users' | 'pong'
+  type: 'msg' | 'join' | 'leave' | 'users' | 'pong' | 'history'
   name?: string
   color?: string
   text?: string
   time?: string
   count?: number
   total?: number
+  messages?: ChatMessage[]
 }
 
 export interface WsHandle {

@@ -1,0 +1,10 @@
+-- Migration number: 0001 	 2026-05-02T16:23:39.452Z
+
+CREATE TABLE IF NOT EXISTS messages (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  type TEXT NOT NULL,
+  name TEXT,
+  color TEXT,
+  text TEXT,
+  time TEXT NOT NULL
+);
