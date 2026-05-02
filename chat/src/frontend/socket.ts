@@ -21,46 +21,61 @@ export function connect(
   const proto = location.protocol === 'https:' ? 'wss' : 'ws'
   const url = `${proto}://${location.host}/ws?session=${token}`
 
-  onStatus('connecting')
-
-  const ws = new WebSocket(url)
+  let ws: WebSocket
   let heartbeatTimer: ReturnType<typeof setInterval> | null = null
+  let timeoutTimer: ReturnType<typeof setTimeout> | null = null
   let closed = false
 
-  ws.onopen = () => {
-    onStatus('connected')
-    heartbeatTimer = setInterval(() => {
-      if (ws.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify({ type: 'ping' }))
-      }
-    }, 30000)
+  function resetTimeout() {
+    if (timeoutTimer) clearTimeout(timeoutTimer)
+    timeoutTimer = setTimeout(() => {
+      ws.close()
+    }, 70000)
   }
 
-  ws.onmessage = (ev) => {
-    try {
-      const msg = JSON.parse(ev.data as string) as ChatMessage
-      onMessage(msg)
-    } catch {
-      /* ignore malformed */
+  function stopTimers() {
+    if (heartbeatTimer) { clearInterval(heartbeatTimer); heartbeatTimer = null }
+    if (timeoutTimer) { clearTimeout(timeoutTimer); timeoutTimer = null }
+  }
+
+  function setup(sock: WebSocket) {
+    ws = sock
+
+    sock.onopen = () => {
+      onStatus('connected')
+      heartbeatTimer = setInterval(() => {
+        if (ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({ type: 'ping' }))
+        }
+      }, 30000)
+      resetTimeout()
+    }
+
+    sock.onmessage = (ev) => {
+      try {
+        const msg = JSON.parse(ev.data as string) as ChatMessage
+        onMessage(msg)
+      } catch { /* ignore malformed */ }
+      resetTimeout()
+    }
+
+    sock.onclose = () => {
+      if (closed) return
+      stopTimers()
+      onStatus('disconnected')
+      setTimeout(() => {
+        if (closed) return
+        onStatus('reconnecting')
+        setup(new WebSocket(url))
+      }, 2000)
+    }
+
+    sock.onerror = () => {
+      // onclose will fire after this
     }
   }
 
-  ws.onclose = () => {
-    if (closed) return
-    if (heartbeatTimer) clearInterval(heartbeatTimer)
-    onStatus('disconnected')
-    setTimeout(() => {
-      if (closed) return
-      onStatus('reconnecting')
-      const h = connect(token, onMessage, onStatus)
-      // capture the new ws for the send/close closures
-      ;(h as unknown as { _ws: WebSocket })._ws
-    }, 2000)
-  }
-
-  ws.onerror = () => {
-    // let onclose handle cleanup and reconnect
-  }
+  setup(new WebSocket(url))
 
   return {
     send(text: string) {
@@ -70,7 +85,7 @@ export function connect(
     },
     close() {
       closed = true
-      if (heartbeatTimer) clearInterval(heartbeatTimer)
+      stopTimers()
       ws.close()
     },
   }

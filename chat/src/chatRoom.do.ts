@@ -17,32 +17,34 @@ interface ChatMessage {
 }
 
 export class ChatRoom extends DurableObject {
-  private sessions = new Map<string, ClientInfo>()
-  private clients = new Map<WebSocket, ClientInfo>()
 
   async fetch(request: Request): Promise<Response> {
     const url = new URL(request.url)
 
     if (url.pathname === '/session' && request.method === 'PUT') {
       const body = await request.json() as { token: string; user: ClientInfo; psk: string }
-      this.sessions.set(body.token, { name: body.user.name, color: body.user.color, psk: body.psk })
+      await this.ctx.storage.put(`session:${body.token}`, { name: body.user.name, color: body.user.color, psk: body.psk })
       return new Response('ok')
     }
 
     if (url.pathname === '/session' && request.method === 'DELETE') {
       const body = await request.json() as { token: string }
-      this.sessions.delete(body.token)
+      await this.ctx.storage.delete(`session:${body.token}`)
       return new Response('ok')
     }
 
     const token = url.searchParams.get('session')
     if (!token) return new Response('missing session', { status: 401 })
 
-    const session = this.sessions.get(token)
+    const session = await this.ctx.storage.get(`session:${token}`) as ClientInfo | undefined
     if (!session) return new Response('invalid session', { status: 401 })
 
-    for (const info of this.clients.values()) {
-      if (info.psk === session.psk) {
+    // Check already connected (same PSK)
+    for (const ws of this.ctx.getWebSockets()) {
+      const tags = this.ctx.getTags(ws)
+      const existingToken = tags[0]
+      const existing = await this.ctx.storage.get(`session:${existingToken}`) as ClientInfo | undefined
+      if (existing?.psk === session.psk) {
         return new Response('already connected', { status: 409 })
       }
     }
@@ -50,8 +52,10 @@ export class ChatRoom extends DurableObject {
     const pair = new WebSocketPair()
     const [client, server] = Object.values(pair)
 
-    this.ctx.acceptWebSocket(server, ['chat'])
-    this.clients.set(server, session)
+    this.ctx.acceptWebSocket(server, [token])
+
+    await this.ctx.storage.put(`lastseen:${token}`, Date.now())
+    await this.ctx.storage.setAlarm(Date.now() + 45000)
 
     this.broadcast({ type: 'join', name: session.name, time: now() })
     this.broadcastUserCount()
@@ -60,8 +64,10 @@ export class ChatRoom extends DurableObject {
   }
 
   async webSocketMessage(ws: WebSocket, raw: string) {
-    const client = this.clients.get(ws)
-    if (!client) return
+    const tags = this.ctx.getTags(ws)
+    const token = tags[0]
+    const session = await this.ctx.storage.get(`session:${token}`) as ClientInfo | undefined
+    if (!session) return
 
     let data: { type?: string; text?: string }
     try {
@@ -69,6 +75,8 @@ export class ChatRoom extends DurableObject {
     } catch {
       return
     }
+
+    await this.ctx.storage.put(`lastseen:${token}`, Date.now())
 
     if (data.type === 'ping') {
       ws.send(JSON.stringify({ type: 'pong' }))
@@ -79,34 +87,53 @@ export class ChatRoom extends DurableObject {
 
     this.broadcast({
       type: 'msg',
-      name: client.name,
-      color: client.color,
+      name: session.name,
+      color: session.color,
       text: data.text,
       time: now(),
     })
   }
 
   async webSocketClose(ws: WebSocket, _code: number, _reason: string, _wasClean: boolean) {
-    const client = this.clients.get(ws)
-    if (client) {
-      this.clients.delete(ws)
-      this.broadcast({ type: 'leave', name: client.name, time: now() })
+    const tags = this.ctx.getTags(ws)
+    const token = tags[0]
+    await this.ctx.storage.delete(`lastseen:${token}`)
+    const session = await this.ctx.storage.get(`session:${token}`) as ClientInfo | undefined
+    if (session) {
+      this.broadcast({ type: 'leave', name: session.name, time: now() })
       this.broadcastUserCount()
     }
   }
 
   async webSocketError(ws: WebSocket, _error: Error) {
-    const client = this.clients.get(ws)
-    if (client) {
-      this.clients.delete(ws)
-      this.broadcast({ type: 'leave', name: client.name, time: now() })
+    const tags = this.ctx.getTags(ws)
+    const token = tags[0]
+    await this.ctx.storage.delete(`lastseen:${token}`)
+    const session = await this.ctx.storage.get(`session:${token}`) as ClientInfo | undefined
+    if (session) {
+      this.broadcast({ type: 'leave', name: session.name, time: now() })
       this.broadcastUserCount()
+    }
+  }
+
+  async alarm() {
+    const deadline = Date.now() - 90000
+    for (const ws of this.ctx.getWebSockets()) {
+      const tags = this.ctx.getTags(ws)
+      const token = tags[0]
+      const lastSeen = await this.ctx.storage.get(`lastseen:${token}`) as number | undefined
+      if (!lastSeen || lastSeen < deadline) {
+        try { ws.close(4001, 'timeout') } catch { /* may already be dead */ }
+      }
+    }
+    if (this.ctx.getWebSockets().length > 0) {
+      await this.ctx.storage.setAlarm(Date.now() + 45000)
     }
   }
 
   private broadcast(msg: ChatMessage) {
     const payload = JSON.stringify(msg)
-    for (const ws of this.clients.keys()) {
+    for (const ws of this.ctx.getWebSockets()) {
       try {
         ws.send(payload)
       } catch {
@@ -116,13 +143,13 @@ export class ChatRoom extends DurableObject {
   }
 
   private broadcastUserCount() {
-    const msg: ChatMessage = { type: 'users', count: this.clients.size, total: 5 }
+    const msg: ChatMessage = { type: 'users', count: this.ctx.getWebSockets().length, total: 5 }
     const payload = JSON.stringify(msg)
-    for (const ws of this.clients.keys()) {
+    for (const ws of this.ctx.getWebSockets()) {
       try {
         ws.send(payload)
       } catch {
-        // ignore dead clients
+        // ignore
       }
     }
   }
