@@ -21,72 +21,35 @@ pnpm --filter site build        # static output to site/dist/
 # Chat (Worker + React frontend)
 pnpm --filter chat dev          # Worker dev with wrangler, frontend with Vite
 pnpm --filter chat build        # bundle frontend + Worker
-pnpm --filter chat deploy       # wrangler deploy to chat.lkkllk404.top
 ```
 
-Always run `build` before `deploy` for the chat package. Astro site deploys via Cloudflare Pages Git integration — no manual deploy needed.
+Both packages deploy via Cloudflare Git integration — push to `main` triggers auto-deploy.
+
+## Git workflow
+
+- `main` is the production branch — never commit directly to `main` for fixes or features
+- Bug fixes: create a `fix/<description>` branch, commit there, test, then merge to `main`
+- New features/experiments: create a `feat/<description>` branch
+- 修bug必须单独开branch，修好后再合并，禁止直接在main上修改
 
 ## Conventions
 
-- No comments in code unless explicitly requested
-- Blog uses hand-written CSS only (no Tailwind, no component library)
-- Chat frontend uses React with minimal dependencies
+- External component libraries are allowed but use cautiously — prefer hand-written CSS and minimal deps
 - Blog posts are Markdown files under `site/src/content/blog/`
 - Astro content collections are used for blog — follow Astro's content collection schema conventions
 
 ## Design
 
-Dark terminal aesthetic across all pages.
-
-### Color scheme
-
-| Use | Value |
-|-----|-------|
-| Page background | `#0a0a12` (deep blue-black) |
-| Body text | `#c9d1d9` (light gray-white) |
-| Keywords | `#c792ea` (purple, VSCode type color) |
-| Strings | `#ecc48d` (amber) |
-| Comments | `#54546d` (muted purple-gray) |
-| Prompt | `#7ee787` (terminal green) |
-| Link hover | `#58a6ff` (blue) |
-| Decor / separators | `#30363d` (subtle border gray) |
-
-### Homepage (`www.lkkllk404.top/`)
-
-Code-as-art + dark minimal hybrid:
-- Deep blue-black gradient background with subtle CSS dot grid overlay
-- Top-left nav as terminal path: `~/home          # blog  chat`
-- Center: decorative C-style struct describing the site (syntax-highlighted, non-interactive)
-- Below: two clickable shell commands: `> cat /blog` and `> nc chat 1337`
-- Footer: `[user@www ~]$ _` with blinking cursor
-- Monospace font throughout
-
-### Blog
-
-- Listing page: `ls -la` style output (date + title per line)
-- Post page: clean readable text, terminal-styled header/decor
-
-### Chat (`chat.lkkllk404.top/`)
-
-IRC terminal-style interface:
-- PSK (8-char password) login → session token → WebSocket upgrade
-- Monospace dark layout: `[time] <nickname> message`
-- Per-user colored nicknames, green prompt prefix
-- Login page mimics `ssh chat.lkkllk404.top` prompt
-- No message history in first build
-- 5 hardcoded users in `chat/src/config.ts`
-
-### No mobile-first
-
-No responsive/mobile adaptations needed in the initial build.
+Dark terminal aesthetic across all pages. No mobile adaptations needed.
+Existing CSS files (`site/src/styles/global.css`, `chat/src/frontend/app.css`) define the current color scheme — use them as reference, not as rules. New pages should feel consistent with the overall terminal vibe but don't need to copy the same layout or exact color values.
 
 ## Gotchas
 
-- Durable Objects require `wrangler.toml` migrations — run `wrangler migrations` after schema changes
 - Cloudflare Workers do not support Node.js APIs; use Cloudflare-specific runtime APIs
 - WebSocket upgrade in Workers must return a `Response` with `webSocket` property — follow Cloudflare's WebSocket pattern, not standard Node ws library patterns
 - Chat frontend builds to `chat/public/` so the Worker can serve static assets directly
 - Astro `output: 'static'` mode — no server-side rendering or API routes in the site package
+- `env.ASSETS.fetch()` may be undefined in `wrangler dev` mode — always wrap in try/catch
 
 ## User context
 
