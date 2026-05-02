@@ -84,6 +84,6 @@
 ## Issues & future features
 
 - [x] Fix WebSocket frequent disconnections
+- [x] Persist chat message history (DO SQLite + D1 archive)
+- [x] Push chat history to newly joined clients
 - [ ] Add favicon to site and chat
-- [ ] Persist chat message history (DO SQLite)
-- [ ] Push chat history to newly joined clients
