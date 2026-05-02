@@ -57,13 +57,13 @@
 
 ## Phase 4: Chat frontend (chat/)
 
-- [ ] `chat/src/frontend/` — Vite + React SPA
-- [ ] Vite config — build output to `chat/public/`
-- [ ] **Login page** — prompt asking for password, enter to submit
+- [x] `chat/src/frontend/` — Vite + React SPA
+- [x] Vite config — build output to `chat/public/`
+- [x] **Login page** — prompt asking for password, enter to submit
   - SSH-style `$ ssh chat.lkkllk404.top` header
   - `password: [____]` input
   - Error message on wrong PSK: `Access denied`
-- [ ] **Chat page** — IRC terminal style
+- [x] **Chat page** — IRC terminal style
   - Monospace, dark background
   - `<nickname>` in per-user color
   - Messages appear as: `[HH:MM] <name> text`
@@ -71,11 +71,11 @@
   - Input line: `> [________________]`
   - Enter to send
   - Bottom status bar: `connected  users: 2/5`
-- [ ] `App.tsx` — state machine (login / chat), top-level layout
-- [ ] `LoginPage.tsx` — password input, auth API call
-- [ ] `ChatPage.tsx` — message list, input bar, status line, WS connection
-- [ ] WebSocket client — connect with session token, send/receive JSON, reconnect on drop
-- [ ] Styling: `app.css` — terminal dark theme, colors matching AGENTS.md
+- [x] `App.tsx` — state machine (login / chat), top-level layout
+- [x] `LoginPage.tsx` — password input, auth API call
+- [x] `ChatPage.tsx` — message list, input bar, status line, WS connection
+- [x] WebSocket client — connect with session token, send/receive JSON, reconnect on drop
+- [x] Styling: `app.css` — terminal dark theme, colors matching AGENTS.md
 
 ## Phase 5: Test
 

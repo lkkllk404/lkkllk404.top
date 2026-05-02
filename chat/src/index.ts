@@ -20,7 +20,11 @@ export default {
       return handleWebSocket(request, env)
     }
 
-    return env.ASSETS.fetch(request)
+    try {
+      return await env.ASSETS.fetch(request)
+    } catch {
+      return new Response('not found', { status: 404 })
+    }
   },
 }
 
