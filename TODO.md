@@ -43,17 +43,17 @@
 
 ## Phase 3: Chat backend (chat/)
 
-- [ ] `chat/src/auth.ts` — PSK validation, session token generation (crypto-random hex)
-- [ ] `chat/src/index.ts` — Worker entry
+- [x] `chat/src/auth.ts` — PSK validation, session token generation (crypto-random hex)
+- [x] `chat/src/index.ts` — Worker entry
   - `GET /` — serve React SPA static assets
   - `POST /login { psk }` — validate PSK, return session token + user info
   - `GET /ws?session=xxx` — validate session, upgrade to WebSocket
-- [ ] `chat/src/chatRoom.do.ts` — Durable Object
+- [x] `chat/src/chatRoom.do.ts` — Durable Object
   - Map session → user info
   - Broadcast join/leave/message to all connected clients
   - Reject second connection from same PSK
-- [ ] wrangler.toml migrations for Durable Object
-- [ ] Test WebSocket connection locally with wrangler dev
+- [x] wrangler.toml migrations for Durable Object
+- [x] Test login endpoint locally with wrangler dev
 
 ## Phase 4: Chat frontend (chat/)
 
