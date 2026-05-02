@@ -13,8 +13,8 @@
 
 ## Phase 0: Scaffolding (chat config)
 
-- [ ] Generate 5 random PSK values (8 chars, alnum + `!@#$`)
-- [ ] Create `chat/src/config.ts` — PSK → { name, color } mapping
+- [x] Generate 5 random PSK values (8 chars, alnum + `!@#$`)
+- [x] Create `chat/src/config.ts` — PSK → { name, color } mapping
 
 ## Phase 1: Project scaffolding
 
@@ -43,7 +43,6 @@
 
 ## Phase 3: Chat backend (chat/)
 
-- [ ] `chat/src/config.ts` — hardcoded USERS map (PSK → { name, color })
 - [ ] `chat/src/auth.ts` — PSK validation, session token generation (crypto-random hex)
 - [ ] `chat/src/index.ts` — Worker entry
   - `GET /` — serve React SPA static assets
