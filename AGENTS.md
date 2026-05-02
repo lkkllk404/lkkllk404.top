@@ -30,7 +30,6 @@ Both packages deploy via Cloudflare Git integration — push to `main` triggers 
 - `main` is the production branch — never commit directly to `main` for fixes or features
 - Bug fixes: create a `fix/<description>` branch, commit there, test, then merge to `main`
 - New features/experiments: create a `feat/<description>` branch
-- 修bug必须单独开branch，修好后再合并，禁止直接在main上修改
 - Bug fix workflow:
   1. Create `fix/<description>` branch from `main`
   2. Fix the bug, build, and test locally
@@ -69,5 +68,4 @@ The repo owner has a C/Python background and is new to web development. When ask
 ## Behavior
 
 - Always pause and wait for my confirmation after completing a major phase or feature, before running any git commit.
-- 每完成一个Phase都应该停下来确认，不要立刻commit。每完成一项重大功能也应该停下确认。
-- 注意及时更新Todo
+- Remember to update Todo
