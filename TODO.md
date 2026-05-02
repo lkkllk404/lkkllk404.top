@@ -80,3 +80,10 @@
 ## Phase 5: Test
 
 [x] End-to-end test: login → WebSocket → send/receive messages
+
+## Issues & future features
+
+- [ ] Fix WebSocket frequent disconnections
+- [ ] Add favicon to site and chat
+- [ ] Persist chat message history (DO SQLite)
+- [ ] Push chat history to newly joined clients
