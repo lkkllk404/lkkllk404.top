@@ -79,4 +79,4 @@
 
 ## Phase 5: Test
 
-[ ] End-to-end test: login → WebSocket → send/receive messages
+[x] End-to-end test: login → WebSocket → send/receive messages
