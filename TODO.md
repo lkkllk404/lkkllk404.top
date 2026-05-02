@@ -22,7 +22,7 @@
 - [x] Initialize `site/` package (Astro, astro.config.mjs, placeholder index.astro)
 - [x] Initialize `chat/` package (wrangler.toml, Worker entry, Vite + React frontend scaffold)
 - [x] Configure Cloudflare Pages for `site/` (Git integration, domain `www.lkkllk404.top`) — _manual_
-- [ ] Configure Cloudflare Worker for `chat/` (domain `chat.lkkllk404.top`) — _post-deploy_
+- [x] Configure Cloudflare Worker for `chat/` (domain `chat.lkkllk404.top`) — _post-deploy_
 - [x] Root domain `lkkllk404.top` → redirect to `www.lkkllk404.top` — _manual DNS_
 
 ## Phase 2: Static site (site/)
@@ -77,10 +77,6 @@
 - [ ] WebSocket client — connect with session token, send/receive JSON, reconnect on drop
 - [ ] Styling: `app.css` — terminal dark theme, colors matching AGENTS.md
 
-## Phase 5: Integration and deploy
+## Phase 5: Test
 
-- [ ] End-to-end test: login → WebSocket → send/receive messages
-- [ ] Deploy chat Worker (`pnpm --filter chat build && pnpm --filter chat deploy`)
-- [ ] Verify Cloudflare Pages auto-deploy for site
-- [ ] DNS records: `www.lkkllk404.top` → Pages, `chat.lkkllk404.top` → Worker
-- [ ] Redirect: `lkkllk404.top` → `www.lkkllk404.top`
+[ ] End-to-end test: login → WebSocket → send/receive messages
