@@ -1,5 +1,3 @@
-# AGENTS.md
-
 ## Architecture
 
 pnpm monorepo with two independent packages deploying to different Cloudflare services:
@@ -98,3 +96,9 @@ The repo owner has a C/Python background and is new to web development. When ask
 
 - No emoji in code or markdown files unless explicitly requested
 - Prefer existing patterns when adding new components
+
+## Behavior
+
+- Always pause and wait for my confirmation after completing a major phase or feature, before running any git commit.
+- 每完成一个Phase都应该停下来确认，不要立刻commit。每完成一项重大功能也应该停下确认。
+- 注意及时更新Todo
