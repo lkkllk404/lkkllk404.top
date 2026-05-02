@@ -7,7 +7,7 @@ interface ClientInfo {
 }
 
 interface ChatMessage {
-  type: 'msg' | 'join' | 'leave' | 'users' | 'error'
+  type: 'msg' | 'join' | 'leave' | 'users' | 'pong'
   name?: string
   color?: string
   text?: string
@@ -17,31 +17,43 @@ interface ChatMessage {
 }
 
 export class ChatRoom extends DurableObject {
+  private sessions = new Map<string, ClientInfo>()
   private clients = new Map<WebSocket, ClientInfo>()
 
   async fetch(request: Request): Promise<Response> {
     const url = new URL(request.url)
-    const name = url.searchParams.get('name')
-    const color = url.searchParams.get('color')
-    const psk = url.searchParams.get('psk')
 
-    if (!name || !color || !psk) {
-      return new Response('missing user params', { status: 400 })
+    if (url.pathname === '/session' && request.method === 'PUT') {
+      const body = await request.json() as { token: string; user: ClientInfo; psk: string }
+      this.sessions.set(body.token, { name: body.user.name, color: body.user.color, psk: body.psk })
+      return new Response('ok')
     }
 
+    if (url.pathname === '/session' && request.method === 'DELETE') {
+      const body = await request.json() as { token: string }
+      this.sessions.delete(body.token)
+      return new Response('ok')
+    }
+
+    const token = url.searchParams.get('session')
+    if (!token) return new Response('missing session', { status: 401 })
+
+    const session = this.sessions.get(token)
+    if (!session) return new Response('invalid session', { status: 401 })
+
     for (const info of this.clients.values()) {
-      if (info.psk === psk) {
-        return new Response('already connected from another session', { status: 409 })
+      if (info.psk === session.psk) {
+        return new Response('already connected', { status: 409 })
       }
     }
 
     const pair = new WebSocketPair()
     const [client, server] = Object.values(pair)
 
-    this.ctx.acceptWebSocket(server)
-    this.clients.set(server, { name, color, psk })
+    this.ctx.acceptWebSocket(server, ['chat'])
+    this.clients.set(server, session)
 
-    this.broadcast({ type: 'join', name, time: now() })
+    this.broadcast({ type: 'join', name: session.name, time: now() })
     this.broadcastUserCount()
 
     return new Response(null, { status: 101, webSocket: client })
@@ -51,10 +63,15 @@ export class ChatRoom extends DurableObject {
     const client = this.clients.get(ws)
     if (!client) return
 
-    let data: { text?: string }
+    let data: { type?: string; text?: string }
     try {
-      data = JSON.parse(raw) as { text?: string }
+      data = JSON.parse(raw) as { type?: string; text?: string }
     } catch {
+      return
+    }
+
+    if (data.type === 'ping') {
+      ws.send(JSON.stringify({ type: 'pong' }))
       return
     }
 
@@ -69,7 +86,7 @@ export class ChatRoom extends DurableObject {
     })
   }
 
-  async webSocketClose(ws: WebSocket) {
+  async webSocketClose(ws: WebSocket, _code: number, _reason: string, _wasClean: boolean) {
     const client = this.clients.get(ws)
     if (client) {
       this.clients.delete(ws)
@@ -78,7 +95,7 @@ export class ChatRoom extends DurableObject {
     }
   }
 
-  async webSocketError(ws: WebSocket) {
+  async webSocketError(ws: WebSocket, _error: Error) {
     const client = this.clients.get(ws)
     if (client) {
       this.clients.delete(ws)
@@ -99,8 +116,7 @@ export class ChatRoom extends DurableObject {
   }
 
   private broadcastUserCount() {
-    const total = 5
-    const msg: ChatMessage = { type: 'users', count: this.clients.size, total }
+    const msg: ChatMessage = { type: 'users', count: this.clients.size, total: 5 }
     const payload = JSON.stringify(msg)
     for (const ws of this.clients.keys()) {
       try {

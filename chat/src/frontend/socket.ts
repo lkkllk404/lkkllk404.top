@@ -1,5 +1,5 @@
 export interface ChatMessage {
-  type: 'msg' | 'join' | 'leave' | 'users'
+  type: 'msg' | 'join' | 'leave' | 'users' | 'pong'
   name?: string
   color?: string
   text?: string
@@ -23,10 +23,17 @@ export function connect(
 
   onStatus('connecting')
 
-  let ws = new WebSocket(url)
+  const ws = new WebSocket(url)
+  let heartbeatTimer: ReturnType<typeof setInterval> | null = null
+  let closed = false
 
   ws.onopen = () => {
     onStatus('connected')
+    heartbeatTimer = setInterval(() => {
+      if (ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type: 'ping' }))
+      }
+    }, 30000)
   }
 
   ws.onmessage = (ev) => {
@@ -39,16 +46,20 @@ export function connect(
   }
 
   ws.onclose = () => {
+    if (closed) return
+    if (heartbeatTimer) clearInterval(heartbeatTimer)
     onStatus('disconnected')
     setTimeout(() => {
+      if (closed) return
       onStatus('reconnecting')
       const h = connect(token, onMessage, onStatus)
-      ws = (h as unknown as { _ws: WebSocket })._ws
+      // capture the new ws for the send/close closures
+      ;(h as unknown as { _ws: WebSocket })._ws
     }, 2000)
   }
 
   ws.onerror = () => {
-    ws.close()
+    // let onclose handle cleanup and reconnect
   }
 
   return {
@@ -58,6 +69,8 @@ export function connect(
       }
     },
     close() {
+      closed = true
+      if (heartbeatTimer) clearInterval(heartbeatTimer)
       ws.close()
     },
   }
