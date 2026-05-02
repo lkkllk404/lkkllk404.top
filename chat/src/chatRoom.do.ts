@@ -129,6 +129,5 @@ export class ChatRoom extends DurableObject {
 }
 
 function now(): string {
-  const d = new Date()
-  return d.toTimeString().slice(0, 5)
+  return new Date().toISOString()
 }

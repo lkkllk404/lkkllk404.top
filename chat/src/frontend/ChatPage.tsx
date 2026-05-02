@@ -2,6 +2,11 @@ import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { connect, type ChatMessage, type WsHandle } from './socket'
 import type { UserInfo } from './LoginPage'
 
+function formatTime(iso: string): string {
+  const d = new Date(iso)
+  return d.toTimeString().slice(0, 5)
+}
+
 interface Props {
   token: string
   user: UserInfo
@@ -52,7 +57,7 @@ export default function ChatPage({ token, user }: Props) {
           <div key={msg.id} className={`chat-line chat-${msg.type}`}>
             {msg.type === 'msg' && (
               <>
-                <span className="chat-time">[{msg.time}]</span>
+                <span className="chat-time">[{formatTime(msg.time!)}]</span>
                 {' '}
                 <span className="chat-name" style={{ color: msg.color }}>
                   &lt;{msg.name}&gt;
@@ -63,7 +68,7 @@ export default function ChatPage({ token, user }: Props) {
             )}
             {(msg.type === 'join' || msg.type === 'leave') && (
               <span className="chat-system">
-                *** {msg.name} {msg.type === 'join' ? 'joined' : 'left'} ({msg.time})
+                *** {msg.name} {msg.type === 'join' ? 'joined' : 'left'} ({formatTime(msg.time!)})
               </span>
             )}
           </div>
