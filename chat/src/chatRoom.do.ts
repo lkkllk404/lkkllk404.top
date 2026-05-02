@@ -1,4 +1,5 @@
 import { DurableObject } from 'cloudflare:workers'
+import { MAX_USERS } from './config'
 
 interface ClientInfo {
   name: string
@@ -212,7 +213,7 @@ export class ChatRoom extends DurableObject {
   }
 
   private broadcastUserCount() {
-    const msg: ChatMessage = { type: 'users', count: this.ctx.getWebSockets().length, total: 5 }
+    const msg: ChatMessage = { type: 'users', count: this.ctx.getWebSockets().length, total: MAX_USERS }
     const payload = JSON.stringify(msg)
     for (const ws of this.ctx.getWebSockets()) {
       try {
