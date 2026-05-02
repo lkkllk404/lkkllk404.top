@@ -31,6 +31,12 @@ Both packages deploy via Cloudflare Git integration — push to `main` triggers 
 - Bug fixes: create a `fix/<description>` branch, commit there, test, then merge to `main`
 - New features/experiments: create a `feat/<description>` branch
 - 修bug必须单独开branch，修好后再合并，禁止直接在main上修改
+- Bug fix workflow:
+  1. Create `fix/<description>` branch from `main`
+  2. Fix the bug, build, and test locally
+  3. Commit the fix
+  4. Wait for review and confirmation before merging to `main`
+- Trivial fixes (typo, formatting) don't need a branch — commit directly to `main`
 
 ## Conventions
 
