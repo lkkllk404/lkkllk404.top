@@ -27,12 +27,7 @@ export class ChatRoom extends DurableObject {
   }
 
   async fetch(request: Request): Promise<Response> {
-    if (!this.inited) {
-      this.ctx.storage.sql.exec(
-        'CREATE TABLE IF NOT EXISTS messages (id INTEGER PRIMARY KEY, type TEXT NOT NULL, name TEXT, color TEXT, text TEXT, time TEXT NOT NULL)'
-      )
-      this.inited = true
-    }
+    this.ensureSchema()
 
     const url = new URL(request.url)
 
@@ -54,10 +49,11 @@ export class ChatRoom extends DurableObject {
     const session = await this.ctx.storage.get(`session:${token}`) as ClientInfo | undefined
     if (!session) return new Response('invalid session', { status: 401 })
 
-    // Check already connected (same PSK)
+    // Check already connected (skip pending entries — they are reconnecting)
     for (const ws of this.ctx.getWebSockets()) {
       const tags = this.ctx.getTags(ws)
       const existingToken = tags[0]
+      if (existingToken === token) continue
       const existing = await this.ctx.storage.get(`session:${existingToken}`) as ClientInfo | undefined
       if (existing?.psk === session.psk) {
         return new Response('already connected', { status: 409 })
@@ -66,7 +62,6 @@ export class ChatRoom extends DurableObject {
 
     const pair = new WebSocketPair()
     const [client, server] = Object.values(pair)
-
     this.ctx.acceptWebSocket(server, [token])
 
     await this.ctx.storage.put(`lastseen:${token}`, Date.now())
@@ -78,7 +73,15 @@ export class ChatRoom extends DurableObject {
       server.send(JSON.stringify({ type: 'history', messages: history }))
     }
 
-    await this.broadcast({ type: 'join', name: session.name, time: now() })
+    // Check if this is a graceful reconnect within grace period
+    const existing = this.ctx.storage.sql.exec('SELECT deadline FROM pending WHERE token = ?', token)
+    const isReconnect = !!existing.raw().next().value
+    if (isReconnect) {
+      this.ctx.storage.sql.exec('DELETE FROM pending WHERE token = ?', token)
+      // No join broadcast — user was never considered "gone"
+    } else {
+      await this.broadcast({ type: 'join', name: session.name, time: now() })
+    }
     this.broadcastUserCount()
 
     return new Response(null, { status: 101, webSocket: client })
@@ -116,39 +119,84 @@ export class ChatRoom extends DurableObject {
   }
 
   async webSocketClose(ws: WebSocket, _code: number, _reason: string, _wasClean: boolean) {
-    const tags = this.ctx.getTags(ws)
-    const token = tags[0]
-    await this.ctx.storage.delete(`lastseen:${token}`)
-    const session = await this.ctx.storage.get(`session:${token}`) as ClientInfo | undefined
-    if (session) {
-      await this.broadcast({ type: 'leave', name: session.name, time: now() })
-      this.broadcastUserCount()
-    }
+    await this.enterGracePeriod(ws)
   }
 
   async webSocketError(ws: WebSocket, _error: Error) {
+    await this.enterGracePeriod(ws)
+  }
+
+  private async enterGracePeriod(ws: WebSocket) {
     const tags = this.ctx.getTags(ws)
     const token = tags[0]
+    if (!token) return
     await this.ctx.storage.delete(`lastseen:${token}`)
     const session = await this.ctx.storage.get(`session:${token}`) as ClientInfo | undefined
-    if (session) {
-      await this.broadcast({ type: 'leave', name: session.name, time: now() })
-      this.broadcastUserCount()
+    if (!session) return
+    // Don't broadcast leave yet — give client 30s to reconnect
+    const deadline = Date.now() + 30000
+    this.ctx.storage.sql.exec(
+      'INSERT OR REPLACE INTO pending (token, deadline) VALUES (?, ?)',
+      token, deadline
+    )
+    const alarm = await this.ctx.storage.getAlarm()
+    if (!alarm || alarm > deadline) {
+      await this.ctx.storage.setAlarm(deadline)
     }
   }
 
+  private ensureSchema() {
+    if (this.inited) return
+    this.ctx.storage.sql.exec(
+      'CREATE TABLE IF NOT EXISTS messages (id INTEGER PRIMARY KEY, type TEXT NOT NULL, name TEXT, color TEXT, text TEXT, time TEXT NOT NULL)'
+    )
+    this.ctx.storage.sql.exec(
+      'CREATE TABLE IF NOT EXISTS pending (token TEXT PRIMARY KEY, deadline INTEGER NOT NULL)'
+    )
+    this.inited = true
+  }
+
   async alarm() {
-    const deadline = Date.now() - 90000
+    this.ensureSchema()
+    // Expire stale connections (no message in 300s)
+    const idleDeadline = Date.now() - 300000
     for (const ws of this.ctx.getWebSockets()) {
       const tags = this.ctx.getTags(ws)
       const token = tags[0]
       const lastSeen = await this.ctx.storage.get(`lastseen:${token}`) as number | undefined
-      if (!lastSeen || lastSeen < deadline) {
-        try { ws.close(4001, 'timeout') } catch { /* may already be dead */ }
+      if (!lastSeen || lastSeen < idleDeadline) {
+        try { ws.close(4001, 'timeout') } catch { }
       }
     }
-    if (this.ctx.getWebSockets().length > 0) {
-      await this.ctx.storage.setAlarm(Date.now() + 45000)
+
+    // Expire grace periods
+    const ms = Date.now()
+    const pending = this.ctx.storage.sql.exec('SELECT token, deadline FROM pending')
+    let nextAlarm = Infinity
+    for (const row of pending.raw()) {
+      const token = row[0] as string
+      const deadline = row[1] as number
+      if (deadline <= ms) {
+        this.ctx.storage.sql.exec('DELETE FROM pending WHERE token = ?', token)
+        const session = await this.ctx.storage.get(`session:${token}`) as ClientInfo | undefined
+        if (session) {
+          await this.broadcast({ type: 'leave', name: session.name, time: now() })
+          this.broadcastUserCount()
+        }
+      } else if (deadline < nextAlarm) {
+        nextAlarm = deadline
+      }
+    }
+
+    // Schedule next check
+    if (this.ctx.getWebSockets().length > 0 || nextAlarm < Infinity) {
+      const next = Math.min(
+        Date.now() + 45000,
+        nextAlarm < Infinity ? nextAlarm : Infinity
+      )
+      if (next < Infinity) {
+        await this.ctx.storage.setAlarm(next)
+      }
     }
   }
 
@@ -213,7 +261,8 @@ export class ChatRoom extends DurableObject {
   }
 
   private broadcastUserCount() {
-    const msg: ChatMessage = { type: 'users', count: this.ctx.getWebSockets().length, total: MAX_USERS }
+    const count = this.ctx.getWebSockets().length
+    const msg: ChatMessage = { type: 'users', count, total: MAX_USERS }
     const payload = JSON.stringify(msg)
     for (const ws of this.ctx.getWebSockets()) {
       try {

@@ -10,9 +10,10 @@ function formatTime(iso: string): string {
 interface Props {
   token: string
   user: UserInfo
+  onAuthFail?: () => void
 }
 
-export default function ChatPage({ token, user }: Props) {
+export default function ChatPage({ token, user, onAuthFail }: Props) {
   const [messages, setMessages] = useState<(ChatMessage & { id: number })[]>([])
   const [usersCount, setUsersCount] = useState(0)
   const [totalUsers, setTotalUsers] = useState(5)
@@ -35,7 +36,7 @@ export default function ChatPage({ token, user }: Props) {
       }
     }, (s) => {
       setStatus(s)
-    })
+    }, onAuthFail)
     wsRef.current = ws
     return () => ws.close()
   }, [token])

@@ -87,3 +87,5 @@
 - [x] Persist chat message history (DO SQLite + D1 archive)
 - [x] Push chat history to newly joined clients
 - [ ] Add favicon to site and chat
+- [x] Mobile: 30s grace period for WebSocket reconnection — avoid join/leave flash on tab switch
+- [x] Mobile: persist auth token in localStorage to survive page reload
