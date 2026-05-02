@@ -18,12 +18,12 @@
 
 ## Phase 1: Project scaffolding
 
-- [ ] Create pnpm workspace root (`package.json`, `pnpm-workspace.yaml`)
-- [ ] Initialize `site/` package (Astro, astro.config.mjs, base layout)
-- [ ] Initialize `chat/` package (wrangler.toml, Worker entry, React frontend scaffold)
-- [ ] Configure Cloudflare Pages for `site/` (Git integration, domain `www.lkkllk404.top`)
-- [ ] Configure Cloudflare Worker for `chat/` (wrangler.toml, domain `chat.lkkllk404.top`)
-- [ ] Root domain `lkkllk404.top` → redirect to `www.lkkllk404.top`
+- [x] Create pnpm workspace root (`package.json`, `pnpm-workspace.yaml`, `.npmrc`)
+- [x] Initialize `site/` package (Astro, astro.config.mjs, placeholder index.astro)
+- [x] Initialize `chat/` package (wrangler.toml, Worker entry, Vite + React frontend scaffold)
+- [x] Configure Cloudflare Pages for `site/` (Git integration, domain `www.lkkllk404.top`) — _manual_
+- [ ] Configure Cloudflare Worker for `chat/` (domain `chat.lkkllk404.top`) — _post-deploy_
+- [x] Root domain `lkkllk404.top` → redirect to `www.lkkllk404.top` — _manual DNS_
 
 ## Phase 2: Static site (site/)
 
