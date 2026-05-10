@@ -18,17 +18,14 @@ export function connect(
   token: string,
   onMessage: (msg: ChatMessage) => void,
   onStatus: (status: string) => void,
-  onAuthFail?: () => void,
 ): WsHandle {
-  const wsHost = import.meta.env.DEV ? `${location.hostname}:8787` : location.host
-  const proto = import.meta.env.DEV ? 'ws' : location.protocol === 'https:' ? 'wss' : 'ws'
-  const url = `${proto}://${wsHost}/ws?session=${token}`
+  const proto = location.protocol === 'https:' ? 'wss' : 'ws'
+  const url = `${proto}://${location.host}/ws?session=${token}`
 
   let ws: WebSocket
   let heartbeatTimer: ReturnType<typeof setInterval> | null = null
   let timeoutTimer: ReturnType<typeof setTimeout> | null = null
   let closed = false
-  let reconnectFails = 0
 
   function resetTimeout() {
     if (timeoutTimer) clearTimeout(timeoutTimer)
@@ -46,7 +43,6 @@ export function connect(
     ws = sock
 
     sock.onopen = () => {
-      reconnectFails = 0
       onStatus('connected')
       heartbeatTimer = setInterval(() => {
         if (ws.readyState === WebSocket.OPEN) {
@@ -68,11 +64,6 @@ export function connect(
       if (closed) return
       stopTimers()
       onStatus('disconnected')
-      reconnectFails++
-      if (reconnectFails >= 5) {
-        onAuthFail?.()
-        return
-      }
       setTimeout(() => {
         if (closed) return
         onStatus('reconnecting')
