@@ -1,6 +1,12 @@
 import { DurableObject } from 'cloudflare:workers'
 import { MAX_USERS } from './config'
 
+const LOCAL_MESSAGES_SCHEMA =
+  'CREATE TABLE IF NOT EXISTS messages (id INTEGER PRIMARY KEY, type TEXT NOT NULL, name TEXT, color TEXT, text TEXT, time TEXT NOT NULL)'
+
+const ARCHIVE_MESSAGES_SCHEMA =
+  'CREATE TABLE IF NOT EXISTS messages (id INTEGER PRIMARY KEY AUTOINCREMENT, type TEXT NOT NULL, name TEXT, color TEXT, text TEXT, time TEXT NOT NULL)'
+
 interface ClientInfo {
   name: string
   color: string
@@ -19,6 +25,7 @@ interface ChatMessage {
 
 export class ChatRoom extends DurableObject {
   private inited = false
+  private archiveInited = false
   private d1: D1Database
 
   constructor(ctx: DurableObjectState, env: { chat_history: D1Database }) {
@@ -28,9 +35,7 @@ export class ChatRoom extends DurableObject {
 
   async fetch(request: Request): Promise<Response> {
     if (!this.inited) {
-      this.ctx.storage.sql.exec(
-        'CREATE TABLE IF NOT EXISTS messages (id INTEGER PRIMARY KEY, type TEXT NOT NULL, name TEXT, color TEXT, text TEXT, time TEXT NOT NULL)'
-      )
+      this.ctx.storage.sql.exec(LOCAL_MESSAGES_SCHEMA)
       this.inited = true
     }
 
@@ -165,7 +170,7 @@ export class ChatRoom extends DurableObject {
   }
 
   private async storeMessage(msg: ChatMessage) {
-    if (msg.type === 'users' || msg.type === 'pong' || msg.type === 'history') return
+    if (msg.type === 'users' || msg.type === 'pong') return
     this.ctx.storage.sql.exec(
       'INSERT INTO messages (type, name, color, text, time) VALUES (?, ?, ?, ?, ?)',
       msg.type, msg.name ?? null, msg.color ?? null, msg.text ?? null, msg.time ?? now()
@@ -180,6 +185,7 @@ export class ChatRoom extends DurableObject {
       count - 500
     )
     const batch: D1PreparedStatement[] = []
+    await this.ensureArchiveSchema()
     for (const row of old.raw()) {
       batch.push(
         this.d1.prepare('INSERT INTO messages (type, name, color, text, time) VALUES (?, ?, ?, ?, ?)')
@@ -195,9 +201,15 @@ export class ChatRoom extends DurableObject {
     }
   }
 
+  private async ensureArchiveSchema() {
+    if (this.archiveInited) return
+    await this.d1.exec(ARCHIVE_MESSAGES_SCHEMA)
+    this.archiveInited = true
+  }
+
   private getHistory(): ChatMessage[] {
     const cursor = this.ctx.storage.sql.exec(
-      'SELECT type, name, color, text, time FROM messages ORDER BY id ASC LIMIT 50'
+      'SELECT type, name, color, text, time FROM (SELECT id, type, name, color, text, time FROM messages ORDER BY id DESC LIMIT 50) ORDER BY id ASC'
     )
     const messages: ChatMessage[] = []
     for (const row of cursor.raw()) {

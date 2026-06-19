@@ -8,13 +8,15 @@
     "dev:worker": "wrangler dev --ip 0.0.0.0",
     "dev:remote-worker": "wrangler dev --ip 0.0.0.0 --remote",
     "dev:frontend": "vite dev --config vite.config.ts",
-    "build": "pnpm build:frontend && pnpm build:worker",
+    "typecheck": "pnpm typecheck:worker && pnpm typecheck:frontend",
+    "typecheck:worker": "tsc --noEmit -p tsconfig.json",
+    "typecheck:frontend": "tsc --noEmit -p tsconfig.frontend.json",
+    "build": "pnpm typecheck && pnpm build:frontend && pnpm build:worker",
     "build:frontend": "vite build --config vite.config.ts",
     "build:worker": "wrangler deploy --dry-run",
+    "db:migrate:local": "wrangler d1 migrations apply chat-history --local",
+    "db:migrate:remote": "wrangler d1 migrations apply chat-history --remote",
     "deploy": "wrangler deploy"
-  },
-  "dependencies": {
-    "hono": "^4.7.0"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20250301.0",

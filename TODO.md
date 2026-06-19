@@ -8,12 +8,12 @@
 - [x] No mobile adaptation in initial build
 - [x] Chat auth: 8-char PSK login → session token → WebSocket
 - [x] Chat UI: IRC terminal style, monospace, colored nicknames
-- [x] Chat: no message history, real-time only
+- [x] Chat: recent message history via DO SQLite, with D1 archive for older messages
 - [x] PSK = identity key, no separate `id` field
 
 ## Phase 0: Scaffolding (chat config)
 
-- [x] Generate 5 random PSK values (8 chars, alnum + `!@#$`)
+- [x] Generate PSK values (8 chars, alnum + `!@#$`)
 - [x] Create `chat/src/config.ts` — PSK → { name, color } mapping
 
 ## Phase 1: Project scaffolding
@@ -86,4 +86,8 @@
 - [x] Fix WebSocket frequent disconnections
 - [x] Persist chat message history (DO SQLite + D1 archive)
 - [x] Push chat history to newly joined clients
+- [x] Move pnpm build-script approvals to `pnpm-workspace.yaml`
+- [x] Split chat Worker and frontend TypeScript checks
+- [x] Add chat D1 migration scripts and defensive archive table creation
+- [x] Remove unused `hono` dependency
 - [ ] Add favicon to site and chat
