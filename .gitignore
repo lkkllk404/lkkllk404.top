@@ -6,15 +6,6 @@ dist/
 site/dist/
 site/.astro/
 
-# Chat (Worker + frontend)
-chat/public/
-chat/dev-dist/
-
-# Wrangler
-.wrangler/
-chat/.wrangler/
-chat/worker-dev/
-
 # OS
 .DS_Store
 Thumbs.db

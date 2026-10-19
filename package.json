@@ -8,10 +8,7 @@
   "scripts": {
     "dev": "pnpm --filter site dev",
     "dev:site": "pnpm --filter site dev",
-    "dev:chat": "pnpm --filter chat dev",
-    "build": "pnpm build:site && pnpm build:chat",
-    "build:site": "pnpm --filter site build",
-    "build:chat": "pnpm --filter chat build",
-    "typecheck": "pnpm --filter chat typecheck"
+    "build": "pnpm build:site",
+    "build:site": "pnpm --filter site build"
   }
 }
