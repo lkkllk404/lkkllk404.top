@@ -90,4 +90,7 @@
 - [x] Split chat Worker and frontend TypeScript checks
 - [x] Add chat D1 migration scripts and defensive archive table creation
 - [x] Remove unused `hono` dependency
+- [x] Migrate to pnpm 12.11.2 and verify frozen-lockfile install, builds, and local dev startup
+- [x] Remove the Corepack requirement and verify direct pnpm installation, builds, and local dev startup
+- [ ] Verify Node.js / direct pnpm installation in both Cloudflare build environments after the pnpm 12 migration — _manual_
 - [ ] Add favicon to site and chat

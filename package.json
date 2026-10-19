@@ -1,7 +1,10 @@
 {
   "name": "lkkllk404-top",
   "private": true,
-  "packageManager": "pnpm@11.7.0",
+  "packageManager": "pnpm@12.11.2",
+  "engines": {
+    "node": ">=22.12.0"
+  },
   "scripts": {
     "dev": "pnpm --filter site dev",
     "dev:site": "pnpm --filter site dev",

@@ -2,7 +2,19 @@
 
 Personal website and chat application, deployed on Cloudflare.
 
-Requires pnpm 11.7.0. Corepack will use the pinned version from `package.json`.
+Requires Node.js >=22.12.0 (required by Astro) and pnpm 12.11.2. The pnpm version is pinned in `package.json`.
+
+Install pnpm directly; Corepack is not required:
+
+```sh
+npm install --global pnpm@12.11.2
+pnpm --version             # should print 12.11.2
+```
+
+pnpm manages its own project-specific version using the `packageManager` field.
+The workspace explicitly sets `pmOnFail: download`, so a compatible pnpm
+installation downloads and runs the pinned version when its version differs.
+Node.js must still be installed separately.
 
 ## Structure
 
@@ -16,7 +28,7 @@ This is a pnpm monorepo with two independent packages:
 ## Development
 
 ```sh
-pnpm install
+pnpm install --frozen-lockfile
 pnpm typecheck
 
 # Static site (Astro with HMR)
@@ -35,6 +47,13 @@ pnpm --filter chat build   # typecheck + output: chat/public/ + worker dry-run b
 ```
 
 Both packages deploy automatically via Cloudflare Git integration on push to `main`.
+Configure both Cloudflare builds to use Node.js >=22.12.0 and pnpm 12.11.2
+(`NODE_VERSION` / `PNPM_VERSION` in the build environment), and install from the
+repository root with `pnpm install --frozen-lockfile` so both workspace packages
+use the committed lockfile and `pnpm-workspace.yaml` build-script approvals.
+Ensure the build environment installs pnpm directly rather than invoking it
+through Corepack; the direct installation command above can be used to bootstrap
+pnpm where the platform supports a custom dependency-install step.
 
 ## Site
 

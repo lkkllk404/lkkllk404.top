@@ -2,6 +2,8 @@ packages:
   - 'site'
   - 'chat'
 
+pmOnFail: download
+
 allowBuilds:
   esbuild: true
   sharp: true
