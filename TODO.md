@@ -47,4 +47,4 @@
 
 ## Issues & future features
 
-- [ ] Add favicon to site
+- [x] Use `avater.png` as the site favicon and homepage logo; verify build and dev startup

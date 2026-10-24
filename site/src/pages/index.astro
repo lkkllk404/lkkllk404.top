@@ -5,7 +5,10 @@ import Base from '../layouts/Base.astro'
 
   <div class="container">
     <nav class="navbar">
-      <span class="path">~/home</span>
+      <a href="/" class="brand" aria-label="lkkllk404 首页">
+        <img src="/avater.png" alt="" width="32" height="32" />
+        <span class="path">~/home</span>
+      </a>
       <span class="nav-links">
         <a href="/blog" class="nav-link"><span class="comment">#</span> blog</a>
       </span>
@@ -47,6 +50,17 @@ import Base from '../layouts/Base.astro'
     align-items: center;
     gap: 1.5rem;
     margin-bottom: 3rem;
+  }
+
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .brand img {
+    display: block;
+    border-radius: 4px;
   }
 
   .path {
