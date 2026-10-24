@@ -2,9 +2,8 @@ node_modules/
 dist/
 .chakracode/
 
-# Site (Astro)
-site/dist/
-site/.astro/
+# Astro
+.astro/
 
 # OS
 .DS_Store
