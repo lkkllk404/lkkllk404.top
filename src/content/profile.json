@@ -1,0 +1,18 @@
+{
+  "name": "lkkllk404",
+  "bio": [
+    "浙大城市学院(hzcu)大一在读，超算队成员",
+    "退役算法竞赛选手"
+  ],
+  "links": [
+    { "label": "GitHub", "url": "https://github.com/lkkllk404" },
+    { "label": "Email", "url": "me@lkkllk404.top" }
+  ],
+  "experience": [
+    {
+      "period": "26.9.1至今",
+      "title": "浙大城市学院(hzcu)",
+      "description": "学生，超算队队员"
+    }
+  ]
+}

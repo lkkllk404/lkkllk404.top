@@ -1,5 +1,5 @@
 ---
-import Base from '../../layouts/Base.astro'
+import Layout from '../../Layout.astro'
 import { getCollection, render } from 'astro:content'
 
 export async function getStaticPaths() {
@@ -13,47 +13,18 @@ export async function getStaticPaths() {
 const { post } = Astro.props
 const { Content } = await render(post)
 ---
-<Base title={post.data.title}>
 
-  <div class="container">
-    <nav class="navbar">
-      <a href="/blog" class="back"><span class="prompt">&lt;</span> blog</a>
-    </nav>
-
-    <article class="post">
-      <header class="post-header">
-        <span class="comment">{'//'} {post.data.date.toISOString().slice(0, 10)}</span>
-        <h1 class="post-title">{post.data.title}</h1>
-      </header>
-      <div class="post-body">
-        <Content />
-      </div>
-    </article>
-  </div>
-
-  <footer class="footer">
-    <span class="prompt">[user@www blog]$</span><span class="cursor">_</span>
-  </footer>
-
-</Base>
-
-<style>
-  .container { max-width: 720px; margin: 0 auto; padding: 3rem 2rem 2rem; }
-  .navbar { margin-bottom: 3rem; }
-  .back { color: var(--text); }
-  .back:hover { color: var(--link-hover); }
-  .prompt { color: var(--prompt); }
-  .post { max-width: 640px; }
-  .post-header { margin-bottom: 2rem; }
-  .comment { color: var(--comment); font-size: 0.85rem; }
-  .post-title { color: var(--keyword); font-size: 1.3rem; font-weight: normal; margin-top: 0.25rem; }
-  :global(.post-body p) { margin-bottom: 1rem; }
-  :global(.post-body a) { color: var(--keyword); }
-  :global(.post-body a:hover) { color: var(--link-hover); }
-  :global(.post-body code) { color: var(--string); }
-  :global(.post-body pre) { border-left: 2px solid var(--separator); padding-left: 1rem; margin: 1rem 0; }
-  .post-body { color: var(--text); line-height: 1.8; }
-  .footer { position: fixed; bottom: 1.5rem; left: 2rem; font-size: 0.9rem; }
-  .cursor { display: inline-block; width: 0.6em; height: 1em; background: var(--prompt); animation: blink 1s step-end infinite; vertical-align: text-bottom; }
-  @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
-</style>
+<Layout title={post.data.title} description={post.data.description} currentPage="blog">
+  <article class="article">
+    <a class="back-link" href="/blog/">返回 Blog</a>
+    <header class="article-header">
+      <h1>{post.data.title}</h1>
+      <time class="secondary" datetime={post.data.date.toISOString().slice(0, 10)}>
+        {post.data.date.toISOString().slice(0, 10)}
+      </time>
+    </header>
+    <div class="prose">
+      <Content />
+    </div>
+  </article>
+</Layout>

@@ -5,4 +5,12 @@ export default defineConfig({
   site: 'https://www.lkkllk404.top',
   srcDir: 'src',
   outDir: 'dist',
+  markdown: {
+    shikiConfig: {
+      themes: {
+        light: 'github-light',
+        dark: 'github-dark',
+      },
+    },
+  },
 })

@@ -1,0 +1,70 @@
+---
+import { getCollection, z } from 'astro:content'
+import Layout from '../Layout.astro'
+import externalPostData from '../content/external.json'
+
+const localPosts = await getCollection('blog')
+const externalPosts = z.array(z.object({
+  title: z.string().trim().min(1),
+  date: z.coerce.date(),
+  source: z.string().trim().min(1),
+  url: z.string().url().refine((url) => /^https?:\/\//i.test(url), {
+    message: 'External posts must use an HTTP or HTTPS URL.',
+  }),
+  description: z.string().trim().optional(),
+  pinned: z.boolean().default(false),
+})).parse(externalPostData)
+
+const posts = [
+  ...localPosts.map(({ id, data }) => ({
+    ...data,
+    url: `/blog/${id}/`,
+    source: '本站',
+    external: false,
+  })),
+  ...externalPosts.map((post) => ({ ...post, external: true })),
+].sort((a, b) => b.date.getTime() - a.date.getTime() || a.title.localeCompare(b.title, 'zh-CN'))
+
+const sections = new Map()
+const pinned = posts.filter((post) => post.pinned)
+if (pinned.length > 0) sections.set('置顶', pinned)
+
+for (const post of posts) {
+  if (post.pinned) continue
+  const year = String(post.date.getUTCFullYear())
+  if (!sections.has(year)) sections.set(year, [])
+  sections.get(year).push(post)
+}
+---
+
+<Layout title="Blog" description="lkkllk404 的文章索引，收录本站文章与其他平台的写作。" currentPage="blog">
+  <header class="page-intro">
+    <h1>Blog</h1>
+    <p class="secondary">本站与其他平台的写作</p>
+  </header>
+
+  {Array.from(sections, ([heading, entries], index) => (
+    <section class="blog-section" aria-labelledby={`blog-section-${index}`}>
+      <h2 id={`blog-section-${index}`}>{heading}</h2>
+      <ul class="post-list">
+        {entries.map((post) => (
+          <li class="post-row">
+            <time datetime={post.date.toISOString().slice(0, 10)}>
+              {post.date.toISOString().slice(0, 10)}
+            </time>
+            <div class="post-summary">
+              <a href={post.url} class="post-link">{post.title}</a>
+              {post.description && <p class="post-description">{post.description}</p>}
+            </div>
+            <span class="post-source">
+              {post.source}
+              {post.external && <><span aria-hidden="true"> ↗</span><span class="sr-only">（外部链接）</span></>}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </section>
+  ))}
+
+  {posts.length === 0 && <p class="empty-state">暂时没有收录文章。</p>}
+</Layout>

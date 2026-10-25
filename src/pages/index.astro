@@ -1,152 +1,40 @@
 ---
-import Base from '../layouts/Base.astro'
+import Layout from '../Layout.astro'
+import profile from '../content/profile.json'
 ---
-<Base title="~/home" bodyClass="home">
 
-  <div class="container">
-    <nav class="navbar">
-      <a href="/" class="brand" aria-label="lkkllk404 首页">
-        <img src="/avater.png" alt="" width="32" height="32" />
-        <span class="path">~/home</span>
-      </a>
-      <span class="nav-links">
-        <a href="/blog" class="nav-link"><span class="comment">#</span> blog</a>
-      </span>
-    </nav>
-
-    <pre class="struct">
-<span class="comment">typedef struct</span> {'{'}
-    <span class="keyword">const char</span> *<span class="member">domain</span>;    <span class="comment">// {'{'}<a href="/" class="struct-link">www.lkkllk404.top</a>{'}'}</span>
-    <span class="keyword">const char</span> *<span class="member">author</span>;    <span class="comment">// {'{'}<span class="string">"lkkllk404"</span>{'}'}</span>
-    <span class="keyword">SiteType</span>   <span class="member">type</span>;      <span class="comment">// {'{'}SITE_PERSONAL{'}'}</span>
-    <span class="keyword">Blog</span>       <span class="member">blog</span>;      <span class="comment">// {'{'}casual notes{'}'}</span>
-{'}'} <span class="keyword">Site</span>;</pre>
-
-    <div class="commands">
-      <p><span class="prompt">&gt;</span> <a href="/blog">cat /blog</a></p>
+<Layout title="Home" currentPage="home">
+  <section class="introduction" aria-labelledby="profile-name">
+    <h1 id="profile-name">{profile.name}</h1>
+    <div class="bio">
+      {profile.bio.map((paragraph) => <p>{paragraph}</p>)}
     </div>
-  </div>
+    {profile.links.length > 0 && (
+      <ul class="profile-links" aria-label="公开账号与联系方式">
+        {profile.links.map((link) => (
+          <li>
+            {link.url ? <a href={link.url}>{link.label}</a> : <span class="secondary">{link.label}</span>}
+          </li>
+        ))}
+      </ul>
+    )}
+  </section>
 
-  <footer class="footer">
-    <span class="prompt">[user@www ~]$</span><span class="cursor">_</span>
-  </footer>
+  {profile.experience.length > 0 && (
+    <section class="profile-section" aria-labelledby="experience-title">
+      <h2 id="experience-title">经历</h2>
+      <ul class="record-list">
+        {profile.experience.map((entry) => (
+          <li class="record">
+            <span class="record-period">{entry.period}</span>
+            <div>
+              <h3>{entry.title}</h3>
+              {entry.description && <p class="record-description">{entry.description}</p>}
+            </div>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )}
 
-</Base>
-
-<style>
-  :global(body.home) {
-    background-image:
-      radial-gradient(circle at center, rgba(255,255,255,0.03) 1px, transparent 1px);
-    background-size: 22px 22px;
-  }
-  .container {
-    max-width: 720px;
-    margin: 0 auto;
-    padding: 3rem 2rem 2rem;
-  }
-
-  .navbar {
-    display: flex;
-    align-items: center;
-    gap: 1.5rem;
-    margin-bottom: 3rem;
-  }
-
-  .brand {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.75rem;
-  }
-
-  .brand img {
-    display: block;
-    border-radius: 4px;
-  }
-
-  .path {
-    color: var(--prompt);
-  }
-
-  .nav-links {
-    display: flex;
-    gap: 1rem;
-    margin-left: auto;
-  }
-
-  .nav-link {
-    color: var(--comment);
-  }
-
-  .nav-link:hover {
-    color: var(--text);
-  }
-
-  .struct {
-    margin-bottom: 2rem;
-    font-size: 0.95rem;
-    line-height: 1.9;
-  }
-
-  :global(.struct .keyword) {
-    color: var(--keyword);
-  }
-
-  :global(.struct .comment) {
-    color: var(--comment);
-  }
-
-  :global(.struct .string) {
-    color: var(--string);
-  }
-
-  :global(.struct .member) {
-    color: var(--text);
-  }
-
-  :global(.struct-link) {
-    color: var(--keyword);
-  }
-
-  :global(.struct-link:hover) {
-    color: var(--link-hover);
-  }
-
-  .commands {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    margin-bottom: 3rem;
-  }
-
-  .commands a {
-    color: var(--text);
-  }
-
-  .commands a:hover {
-    color: var(--link-hover);
-  }
-
-  .prompt {
-    color: var(--prompt);
-  }
-
-  .footer {
-    position: fixed;
-    bottom: 1.5rem;
-    left: 2rem;
-    font-size: 0.9rem;
-  }
-
-  .cursor {
-    display: inline-block;
-    width: 0.6em;
-    height: 1em;
-    background: var(--prompt);
-    animation: blink 1s step-end infinite;
-    vertical-align: text-bottom;
-  }
-
-  @keyframes blink {
-    50% { opacity: 0; }
-  }
-</style>
+</Layout>

@@ -1,0 +1,43 @@
+---
+import './global.css'
+
+const {
+  title,
+  description = 'lkkllk404 的个人主页与 Blog。',
+  currentPage = '',
+} = Astro.props
+const pageTitle = title
+const canonical = new URL(Astro.url.pathname, Astro.site)
+---
+
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content={description} />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonical.href} />
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" type="image/png" href="/avater.png" />
+    <link rel="apple-touch-icon" href="/avater.png" />
+    <title>{pageTitle}</title>
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">跳到正文</a>
+    <div class="site-shell">
+      <header class="site-header">
+        <a class="site-name" href="/" aria-label="lkkllk404 首页">lkkllk404</a>
+        <nav class="site-nav" aria-label="主导航">
+          <a href="/" aria-current={currentPage === 'home' ? 'page' : undefined}>Home</a>
+          <a href="/blog/" aria-current={currentPage === 'blog' ? 'page' : undefined}>Blog</a>
+        </nav>
+      </header>
+      <main id="main-content">
+        <slot />
+      </main>
+    </div>
+  </body>
+</html>

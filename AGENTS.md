@@ -2,9 +2,9 @@
 
 Single Astro static site at the repository root, managed with pnpm and deployed to Cloudflare Pages:
 
-| Package | Domain | Cloudflare Service | Tech |
-|---------|--------|--------------------|------|
-| `./` | `www.lkkllk404.top` | Pages | Astro SSG + hand-written CSS |
+| Package | Domain                | Cloudflare Service | Tech                         |
+| ------- | --------------------- | ------------------ | ---------------------------- |
+| `./`  | `www.lkkllk404.top` | Pages              | Astro SSG + hand-written CSS |
 
 Root domain `lkkllk404.top` should redirect to `www.lkkllk404.top`.
 
@@ -19,34 +19,26 @@ pnpm preview                   # preview the built site
 
 The site deploys via Cloudflare Pages Git integration — push to `main` triggers auto-deploy.
 
-## Git workflow
-
-- `main` is the production branch — never commit directly to `main` for fixes or features
-- Bug fixes: create a `fix/<description>` branch, commit there, test, then merge to `main`
-- New features/experiments: create a `feat/<description>` branch
-- Bug fix workflow:
-  1. Create `fix/<description>` branch from `main`
-  2. Fix the bug, build, and test locally
-  3. Commit the fix
-  4. Wait for review and confirmation before merging to `main`
-- Trivial fixes (typo, formatting) don't need a branch — commit directly to `main`
-
 ## Conventions
 
 - External component libraries are allowed but use cautiously — prefer hand-written CSS and minimal deps
 - Blog posts are Markdown files under `src/content/blog/`
 - Astro content collections are used for blog — follow Astro's content collection schema conventions
+- Keep `src/` shallow: `content/` for authored content, `pages/` for routes, and shared `Layout.astro`, `global.css`, and `content.config.js` at its root. Keep Blog-only sorting and list markup in `pages/blog.astro`; Make sure the directory structure is simple.
 
 ## Design
 
-Dark terminal aesthetic across all pages. No mobile adaptations needed.
-The existing CSS file (`src/styles/global.css`) defines the current color scheme — use it as a reference, not as a rule. New pages should feel consistent with the overall terminal vibe but don't need to copy the same layout or exact color values.
+Use plain document-style layouts with system fonts, clear navigation, and minimal decoration.
+The two main pages are Home and Blog. Home contains profile information, contact links, and experience, with no projects section. Blog combines local Markdown posts and an index of writing on external platforms. All pages omit footers. Tab titles use only the page title, with no domain suffix.
+Support mobile widths down to 320px and respect the system light/dark preference. Do not add animations, external fonts, or client-side data fetching for the core content.
+Personal details currently use explicit placeholders at the owner's request. Maintain them in `src/content/profile.json`; external article metadata lives in `src/content/external.json`. Keep all authored content under `src/content/`.
 
 ## Gotchas
 
 - Astro `output: 'static'` mode — no server-side rendering or API routes
 - Run installation and scripts from the repository root; Cloudflare Pages publishes `dist/`
 - `pnpm-workspace.yaml` holds pnpm settings and dependency build approvals, with no workspace subpackages
+- Application code uses JavaScript and relative imports. The owner requested removal of `tsconfig.json` and `src/env.d.ts`; do not add them back for editor tooling alone.
 
 ## User context
 
@@ -59,5 +51,5 @@ The repo owner has a C/Python background and is new to web development. When ask
 
 ## Behavior
 
-- Always pause and wait for my confirmation after completing a major phase or feature, before running any git commit.
+- Always pause and wait for confirmation after completing a major phase or feature, before running any git commit.
 - After completing a task, run a quick smoke test (e.g. start `pnpm dev` and verify the dev server starts without errors) before marking it as done.
